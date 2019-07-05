@@ -22,7 +22,7 @@
 ###################################################################################
 from datetime import datetime, timedelta, date
 
-from odoo import calverter
+from . import  calverter
 from odoo import models, fields, api, _
 
 
