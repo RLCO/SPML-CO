@@ -7,7 +7,7 @@
          <field name="arch" type="xml">
              <xpath expr="//field[@name='name']" position="after">
                  <h2>
-                   <field name="code" placeholder="Enter Code For Vendor Or Customer"/>
+                   <field name="code" placeholder="Enter Code"/>
                  </h2>
              </xpath>
 
