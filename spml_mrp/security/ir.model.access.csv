@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_spml_mrp_spml_mrp,spml_mrp.spml_mrp,model_spml_mrp_spml_mrp,base.group.user,1,1,1,1
