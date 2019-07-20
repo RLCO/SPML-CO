@@ -86,7 +86,7 @@
                             <field name="cost_of_waste"/>
 
                        </group>
-<group col="4">
+<group>
     <field name="Veriable_Overhead"/>
     <field name="Direct_Labour"/>
 
