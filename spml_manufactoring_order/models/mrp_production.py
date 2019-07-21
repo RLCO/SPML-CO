@@ -82,7 +82,7 @@ class MrpProduction(models.Model):
             for record in old_lines:
                 for line in record.quality_test_ids:
                     res = {
-                            'quality_test_id': self.id,
+                            'quality_test_id': qc_id.id,
                             'question_id': line.question_id.id,
                             'question_type': line.question_type,
                             'q_from': line.q_from,
