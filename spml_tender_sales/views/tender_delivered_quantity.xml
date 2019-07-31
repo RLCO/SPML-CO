@@ -8,6 +8,7 @@
                     <sheet>
                         <group>
                             <field name="invoice_id" readonly="True"/>
+                            <field name="sale_id" readonly="True"/>
                             <field name="product_id" readonly="True"/>
                             <field name="quantity" readonly="True"/>
                             <field name="total_qty" readonly="True"/>
@@ -19,6 +20,7 @@
                                     <tree editable="bottom">
                                         <field name="quantity" sum="Total"/>
                                         <field name="date"/>
+                                        <button name="move_quantity_to_stock" string="move to stock" type="object" />
                                     </tree>
                                 </field>
                             </page>

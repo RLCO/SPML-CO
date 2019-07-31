@@ -8,6 +8,17 @@ class SaleOrder(models.Model):
     _inherit = "sale.order"
 
     is_tender = fields.Boolean()
+    period = fields.Selection(selection=[('weekly', 'weekly'), ('monthly', 'monthly'), ])
+    tender_id = fields.Many2one("tender.sales")
+
+    @api.one
+    @api.returns('self', lambda value: value.id)
+    def copy(self, default=None):
+        default = {} if default is None else default.copy()
+        default.update({
+            'is_tender': False
+        })
+        return super(SaleOrder, self).copy(default=default)
 
     @api.multi
     def tender_sales_action(self):
@@ -17,6 +28,7 @@ class SaleOrder(models.Model):
         for record in self:
             tender_obj = tender_id.create({
                 'sale_id': self.id,
+                'period': self.period,
                 'invoice_id': invoice_id.id,
             })
             for line in record.order_line:
@@ -30,6 +42,7 @@ class SaleOrder(models.Model):
                     # 'ordered_quantity': line.product_uom_qty,
                 })
             record.is_tender = True
+            self.tender_id = tender_obj.id
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Tender Sales',
@@ -60,6 +73,7 @@ class TenderWizardLines(models.TransientModel):
     quantity2 = fields.Float()
     cost2 = fields.Float()
     total2 = fields.Float()
+    number = fields.Integer()
 
 
 class TenderWizard(models.TransientModel):
@@ -88,6 +102,7 @@ class TenderWizard(models.TransientModel):
             'quantity1': line.balance,
             'cost1': line.cost,
             'total1': line.total,
+            'number': line.number,
         }
 
     @api.model
@@ -117,15 +132,19 @@ class TenderWizard(models.TransientModel):
         total2 = 0
         tot2 = 0
         balance = 0
+        balance2 = 0
         remain1 = 0
         remain2 = 0
+        current_qty = 0
         for record in self:
+            current_qty = self.quantity2
             quantity1 = int(record.total2 / record.cost1)
             total1 = quantity1 * record.cost1
             total2 = record.total2 - total1
             balance = int(total2 / record.cost2)
             tot2 = balance * record.cost2
             remain1 = total2 - tot2
+            balance2 = current_qty - balance
 
         self.quantity1 = quantity1
         self.quantity2 = balance
@@ -141,8 +160,9 @@ class TenderWizard(models.TransientModel):
             'ordered_quantity': self.line_id1.ordered_quantity + self.quantity1,
             'note': self.note1,
         })
+        # self.quantity2
         self.line_id2.write({
-            'ordered_quantity': self.quantity2,
+            'ordered_quantity': self.line_id2.ordered_quantity-balance2,
             'note': self.note2,
         })
 
@@ -151,7 +171,7 @@ class TenderWizard(models.TransientModel):
         create = False
         for rec in self:
             for line in rec.tender_ids:
-                if create == False:
+                if line.number == 1:
                     self.product1_id =line.product1_id.id
                     self.quantity1 =line.quantity1
                     self.cost1 =line.cost1
@@ -178,6 +198,7 @@ class TenderSales(models.Model):
     sale_id = fields.Many2one("sale.order")
     invoice_id = fields.Many2one("account.invoice")
     tender_ids = fields.One2many("tender.sales.lines", "tender_id")
+    period = fields.Selection(selection=[('weekly', 'weekly'), ('monthly', 'monthly'), ])
 
     @api.multi
     def transfer_quantity_to_product(self):
@@ -207,8 +228,10 @@ class TenderSalesLines(models.Model):
     tender_id = fields.Many2one("tender.sales")
     product_id = fields.Many2one("product.product")
     quantity = fields.Float(string="ordered Qty")
+    sequence = fields.Integer()
+    number = fields.Integer()
     cost = fields.Float()
-    total = fields.Float() #compute="compute_total_price"
+    total = fields.Float(compute="compute_total_price")
     tax_ids = fields.Many2many("account.tax", "tender_id")
     ordered_quantity = fields.Float(string="Transfer Qty")
     delivered_quantity = fields.Float()
@@ -239,6 +262,7 @@ class TenderSalesLines(models.Model):
                 'tender_sales_id': self.id,
                 'product_id': self.product_id.id,
                 'invoice_id': self.tender_id.invoice_id.id,
+                'sale_id': self.tender_id.sale_id.id,
                 'quantity': self.quantity + self.ordered_quantity,
             })
             return {

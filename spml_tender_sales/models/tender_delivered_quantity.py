@@ -6,10 +6,11 @@ from odoo.exceptions import UserError
 
 class TenderDeliveredQuantity(models.Model):
     _name = "tender.delivered.quantity"
-    _rec_name = 'invoice_id'
+    _rec_name = 'sale_id'
 
     tender_sales_id = fields.Many2one("tender.sales.lines")
     invoice_id = fields.Many2one("account.invoice")
+    sale_id = fields.Many2one("sale.order")
     product_id = fields.Many2one("product.product")
     quantity = fields.Float('ordered Quantity')
     total_qty = fields.Float(string="Total delivery", store=True, compute='get_total_qty')
@@ -38,10 +39,27 @@ class TenderDeliveredQuantityLines(models.Model):
     quantity = fields.Float()
     date = fields.Datetime(default=fields.datetime.now())
 
-    # @api.multi
-    # def transfer_product_quantity(self):
-    #     print("ok")
-    #
+    @api.multi
+    def move_quantity_to_stock(self):
+        stock_id = self.env['stock.picking'].search([('origin', '=', self.tender_delivered_id.sale_id.name)])
+        if stock_id:
+            for line in stock_id:
+                for record in line.move_ids_without_package:
+                    if record.product_id.id == self.tender_delivered_id.product_id.id:
+                        record.quantity_done = self.quantity
+                x = line.button_validate()
+                return x
+                # return {
+                #     'type': 'ir.actions.act_window',
+                #     'name': 'stock move',
+                #     'res_model': 'stock.picking',
+                #     'res_id': line.id,
+                #     'view_type': 'form',
+                #     'view_mode': 'form',
+                #     'target': 'current',
+                # }
+
+
     # @api.multi
     # def transfer_quantity_to_product(self):
     #     print("yes")
