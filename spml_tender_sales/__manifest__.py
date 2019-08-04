@@ -7,7 +7,7 @@
     'website': "http://www.yourcompany.com",
     'category': 'sale',
     'version': '0.1',
-    'depends': ['sale'],
+    'depends': ['sale','stock',],
     'data': [
         # 'security/security.xml',
         'security/ir.model.access.csv',
