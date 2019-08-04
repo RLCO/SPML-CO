@@ -99,9 +99,9 @@ class TenderSalesDelivery(models.Model):
             for rec in self.move_line_ids:
                 print(rec.qty_done, rec.product_id, rec.move_id.name, rec.move_id.product_uom_qty)
                 self.add_done_qty(tender_line_ids, rec.product_id, rec.qty_done)
-                print(rec.qty_done, rec.product_id, rec.move_id.name, rec.move_id.product_uom_qty)
+                # print(rec.qty_done, rec.product_id, rec.move_id.name, rec.move_id.product_uom_qty)
 
-             print("hi... Validate haytham")
+            print("hi... Validate haytham")
             return self.action_generate_backorder_wizard()
         self.action_done()
         return
