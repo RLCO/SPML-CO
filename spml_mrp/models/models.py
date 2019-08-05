@@ -104,6 +104,12 @@ class MrpBom(models.Model):
          #    p.write({'standard_price': product_cost_id.standard_price})
          #    print(p)
 
+     @api.model
+     def create(self, vals):
+         res = super(MrpBom, self).create(vals)
+         res.write({'code': res.code})
+         return res
+
      @api.multi
      def write(self, vals):
          res = super(MrpBom, self).write(vals)
