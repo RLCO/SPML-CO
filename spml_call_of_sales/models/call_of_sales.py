@@ -132,44 +132,73 @@ class TenderWizard(models.TransientModel):
 
     @api.multi
     def compute_product_quantity(self):
-        quantity1 = 0
         total1 = 0
         total2 = 0
-        tot2 = 0
-        balance = 0
-        balance2 = 0
-        remain1 = 0
-        remain2 = 0
-        current_qty = 0
+        needed_qty = 0
+        cost_of_p2 = 0
+        qty_needed_from_p1 = 0
+        balance_p1 = 0
         for record in self:
-            current_qty = self.quantity2
-            quantity1 = int(record.total2 / record.cost1)
-            total1 = quantity1 * record.cost1
-            total2 = record.total2 - total1
-            balance = int(total2 / record.cost2)
-            tot2 = balance * record.cost2
-            remain1 = total2 - tot2
-            balance2 = current_qty - balance
-
-        self.quantity1 = quantity1
-        self.quantity2 = balance
+            needed_qty = self.quantity2
+            cost_of_p2 = needed_qty * record.cost2
+            qty_needed_from_p1 = cost_of_p2 / record.cost1
+            balance_p1 = record.quantity1 - qty_needed_from_p1
+            total1 = balance_p1 * record.cost1
+            total2 = needed_qty * record.cost2
+        self.quantity1 = balance_p1
+        self.quantity2 = needed_qty
         self.total1 = total1
         self.total2 = total2
-        # self.remain1 = remain1
-        # self.remain2 = remain2
-
-        self.note2 += "and new quantity is " + str(balance) + "and remain" + str(remain1)
-        self.note1 += "and we add " + str(quantity1)
-
+        self.note2 += "and new quantity is " + str(needed_qty)
+        self.note1 += "and we take " + str(qty_needed_from_p1)
         self.line_id1.write({
-            'ordered_quantity': self.line_id1.ordered_quantity + self.quantity1,
+            'ordered_quantity': self.line_id1.ordered_quantity - qty_needed_from_p1,
             'note': self.note1,
         })
-        # self.quantity2
         self.line_id2.write({
-            'ordered_quantity': self.line_id2.ordered_quantity-balance2,
+            'ordered_quantity': self.line_id2.ordered_quantity+needed_qty,
             'note': self.note2,
         })
+    # @api.multi
+    # def compute_product_quantity(self):
+    #     quantity1 = 0
+    #     total1 = 0
+    #     total2 = 0
+    #     tot2 = 0
+    #     balance = 0
+    #     balance2 = 0
+    #     remain1 = 0
+    #     remain2 = 0
+    #     current_qty = 0
+    #     for record in self:
+    #         current_qty = self.quantity2
+    #         quantity1 = int(record.total2 / record.cost1)
+    #         total1 = quantity1 * record.cost1
+    #         total2 = record.total2 - total1
+    #         balance = int(total2 / record.cost2)
+    #         tot2 = balance * record.cost2
+    #         remain1 = total2 - tot2
+    #         balance2 = current_qty - balance
+    #
+    #     self.quantity1 = quantity1
+    #     self.quantity2 = balance
+    #     self.total1 = total1
+    #     self.total2 = total2
+    #     # self.remain1 = remain1
+    #     # self.remain2 = remain2
+    #
+    #     self.note2 += "and new quantity is " + str(balance) + "and remain" + str(remain1)
+    #     self.note1 += "and we add " + str(quantity1)
+    #
+    #     self.line_id1.write({
+    #         'ordered_quantity': self.line_id1.ordered_quantity + self.quantity1,
+    #         'note': self.note1,
+    #     })
+    #     # self.quantity2
+    #     self.line_id2.write({
+    #         'ordered_quantity': self.line_id2.ordered_quantity-balance2,
+    #         'note': self.note2,
+    #     })
 
     @api.multi
     def move_product_quantity(self):
